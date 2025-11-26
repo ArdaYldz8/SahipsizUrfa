@@ -1,6 +1,6 @@
 import { NewsArticle } from '@/types/news';
 
-const API_URL = 'http://localhost:8080/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://urfadanhaber-production.up.railway.app/api';
 
 export async function getNews(): Promise<NewsArticle[]> {
     try {

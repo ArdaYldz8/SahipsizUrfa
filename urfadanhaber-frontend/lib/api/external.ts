@@ -1,3 +1,5 @@
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://urfadanhaber-production.up.railway.app/api';
+
 export async function getWeather() {
     try {
         // Şanlıurfa koordinatları: 37.1674, 38.7955
