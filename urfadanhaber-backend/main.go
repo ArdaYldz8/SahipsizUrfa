@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -35,7 +36,13 @@ func main() {
 	seedAdminUser()
 
 	r := GinRouter()
-	r.Run(":8080") // listen and serve on 0.0.0.0:8080
+
+	// Use PORT from environment variable (Railway provides this)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080" // Default for local development
+	}
+	r.Run(":" + port)
 }
 
 func seedData() {
