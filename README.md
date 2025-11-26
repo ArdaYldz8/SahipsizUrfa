@@ -146,96 +146,29 @@ Insallah/
 
 ---
 
-## 🚀 Kurulum
+## 🚀 Kurulum ve Çalıştırma
 
-### Sistem Gereksinimleri
-- Node.js >= 18.0.0 <= 22.x.x
-- npm >= 6.0.0
-- Git
+### 1. Backend (Go)
 
-### 1. Projeyi Klonlama
-
-```bash
-git clone <repository-url>
-cd Insallah
-```
-
-### 2. Backend (Strapi) Kurulumu
+Backend servisi `urfadanhaber-backend` klasöründe bulunur.
 
 ```bash
 cd urfadanhaber-backend
-npm install
+go run main.go
 ```
 
-**İlk Kurulum için Strapi Başlatma:**
-```bash
-npm run develop
-```
+Backend `http://localhost:8080` adresinde çalışacaktır.
 
-Strapi admin paneli `http://localhost:1337/admin` adresinde açılacak.
+### 2. Frontend (Next.js)
 
-**İlk Açılışta Yapılması Gerekenler:**
-
-1. **Admin Hesabı Oluşturma**
-   - İsim: [İstediğiniz isim]
-   - Email: admin@urfadanhaber.com
-   - Şifre: [Güçlü bir şifre]
-
-2. **API Permissions Ayarlama**
-   - Settings → Users & Permissions Plugin → Roles → Public
-   - Her content type için (Haber, Kategori, Yazar, Taziye):
-     - ✅ `find` - Liste getirme
-     - ✅ `findOne` - Tek kayıt getirme
-   - Save butonuna tıklayın
-
-3. **Test Verileri Ekleme** (Content Manager'dan):
-
-   **Kategoriler:**
-   - Şanlıurfa
-   - Türkiye
-   - Spor
-   - Magazin
-   - Ekonomi
-   - Sağlık
-
-   **Haberler:**
-   - En az 3-5 test haberi ekleyin
-   - Her habere kategori atayın
-   - Slug otomatik oluşur
-
-### 3. Frontend (Next.js) Kurulumu
+Frontend uygulaması `urfadanhaber-frontend` klasöründe bulunur.
 
 ```bash
-cd ../urfadanhaber-frontend
-npm install
-```
-
-**Environment Variables Ayarlama:**
-
-`.env.local` dosyası oluşturun:
-
-```env
-# Strapi Backend URL (Zorunlu)
-NEXT_PUBLIC_STRAPI_URL=http://localhost:1337
-
-# OpenWeatherMap API - Hava Durumu (Opsiyonel)
-# https://openweathermap.org/api adresinden ücretsiz API key alabilirsiniz
-NEXT_PUBLIC_OPENWEATHER_API_KEY=your_api_key_here
-
-# CollectAPI - Nöbetçi Eczane ve Puan Cetveli (Opsiyonel)
-# https://collectapi.com/ adresinden ücretsiz API key alabilirsiniz
-COLLECTAPI_KEY=your_api_key_here
-```
-
-**Not:** API key'leri olmadan da çalışır, sadece ilgili widgetlar veri göstermez.
-
-**Frontend'i Başlatma:**
-
-```bash
+cd urfadanhaber-frontend
 npm run dev
 ```
 
-Frontend `http://localhost:3000` adresinde çalışacak.
+Frontend `http://localhost:3000` adresinde çalışacaktır.
 
 ---
 

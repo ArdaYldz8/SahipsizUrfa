@@ -1,52 +1,62 @@
 # Dependencies
 node_modules/
-.pnp
+/.pnp
 .pnp.js
 
 # Testing
-coverage/
+/coverage
 
 # Next.js
 .next/
 out/
-build/
+build
 dist/
 
 # Production
-.vercel
-.netlify
+/build
 
 # Misc
 .DS_Store
 *.pem
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # Debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
 
 # Local env files
-.env
-.env.local
 .env*.local
-.env.development.local
-.env.test.local
-.env.production.local
 
-# Strapi
-urfadanhaber-backend/.tmp/
-urfadanhaber-backend/build/
-urfadanhaber-backend/dist/
-urfadanhaber-backend/.cache/
-urfadanhaber-backend/exports/
-urfadanhaber-backend/.strapi-updater.json
-urfadanhaber-backend/.strapi/
-urfadanhaber-backend/database/*.db
-urfadanhaber-backend/database/*.db-shm
-urfadanhaber-backend/database/*.db-wal
-urfadanhaber-backend/public/uploads/*
-!urfadanhaber-backend/public/uploads/.gitkeep
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploads
+uploads/
+public/uploads/
 
 # IDE
 .vscode/
@@ -57,3 +67,8 @@ urfadanhaber-backend/public/uploads/*
 
 # OS
 Thumbs.db
+.DS_Store
+
+# Logs
+logs
+*.log

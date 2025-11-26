@@ -6,13 +6,13 @@ import DovizKurlari from '@/components/sidebar/DovizKurlari';
 import HavaDurumu from '@/components/sidebar/HavaDurumu';
 import NobetciEczaneler from '@/components/sidebar/NobetciEczaneler';
 import LigPuanDurumu from '@/components/sidebar/LigPuanDurumu';
-import { getHaberler, getKategoriler } from '@/lib/api/strapi';
+import { getNewsByCategory } from '@/lib/api/backend';
 
 // Tarih formatlama fonksiyonu
 function formatTarih(dateString: string): string {
   const date = new Date(dateString);
   const aylar = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
-                 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+    'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
   return `${date.getDate()} ${aylar[date.getMonth()]} ${date.getFullYear()}`;
 }
 
@@ -28,27 +28,19 @@ export async function generateMetadata({ params, searchParams }: {
   const { slug } = await params;
   const { page } = await searchParams;
 
-  // Kategorileri Strapi'den çek
-  const kategoriler = await getKategoriler();
-  const kategori = kategoriler.find(k => k.slug === slug);
-
-  if (!kategori) {
-    return {
-      title: 'Kategori Bulunamadı',
-    };
-  }
+  const categoryName = slug.charAt(0).toUpperCase() + slug.slice(1);
 
   const pageNumber = page ? parseInt(page) : 1;
   const pageTitle = pageNumber > 1
-    ? `${kategori.ad} Haberleri - Sayfa ${pageNumber} | UrfadanHaber`
-    : `${kategori.ad} Haberleri | UrfadanHaber`;
+    ? `${categoryName} Haberleri - Sayfa ${pageNumber} | UrfadanHaber`
+    : `${categoryName} Haberleri | UrfadanHaber`;
 
   return {
     title: pageTitle,
-    description: kategori.aciklama || `${kategori.ad} kategorisinden son haberler`,
+    description: `${categoryName} kategorisinden son haberler`,
     openGraph: {
-      title: `${kategori.ad} Haberleri`,
-      description: kategori.aciklama || `${kategori.ad} kategorisinden son haberler`,
+      title: `${categoryName} Haberleri`,
+      description: `${categoryName} kategorisinden son haberler`,
     },
   };
 }
@@ -63,18 +55,12 @@ export default async function KategoriSayfasi({
   const { slug } = await params;
   const { page } = await searchParams;
 
-  // Strapi'den kategorileri ve haberleri çek
-  const kategoriler = await getKategoriler();
-  const kategori = kategoriler.find(k => k.slug === slug);
-
-  if (!kategori) {
-    notFound();
-  }
+  const categoryName = slug.charAt(0).toUpperCase() + slug.slice(1);
 
   const currentPage = page ? parseInt(page) : 1;
 
   // Bu kategoriye ait tüm haberleri çek
-  const allHaberler = await getHaberler({ kategori: slug, limit: 100 });
+  const allHaberler = await getNewsByCategory(slug);
   const totalPages = Math.ceil(allHaberler.length / ITEMS_PER_PAGE);
 
   // Sayfalama için veriyi dilimle
@@ -89,8 +75,8 @@ export default async function KategoriSayfasi({
         <div className="lg:col-span-2">
           {/* Kategori Başlığı */}
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">{kategori.ad}</h1>
-            <p className="text-gray-600">{kategori.aciklama}</p>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">{categoryName}</h1>
+            <p className="text-gray-600">{categoryName} kategorisindeki en güncel haberler.</p>
           </div>
 
           {/* Haberler Grid */}
@@ -103,31 +89,31 @@ export default async function KategoriSayfasi({
               {haberler.map((haber) => (
                 <Link
                   key={haber.id}
-                  href={`/haber/${haber.slug}`}
+                  href={`/haber/${haber.id}`}
                   className="block bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow group"
                 >
                   <article>
                     <div className="relative h-48">
                       <Image
-                        src={haber.gorsel || DEFAULT_IMAGE}
-                        alt={haber.baslik || 'Haber görseli'}
+                        src={haber.image || DEFAULT_IMAGE}
+                        alt={haber.headline || 'Haber görseli'}
                         fill
                         className="object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
                     <div className="p-4">
                       <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-primary transition-colors line-clamp-2">
-                        {haber.baslik}
+                        {haber.headline}
                       </h3>
-                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">{haber.ozet}</p>
+                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">{haber.description}</p>
                       <div className="flex items-center justify-between text-xs text-gray-500">
-                        <span>{formatTarih(haber.publishedAt)}</span>
+                        <span>{formatTarih(haber.datePublished)}</span>
                         <div className="flex items-center gap-1">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                           </svg>
-                          <span>{haber.okunma}</span>
+                          <span>Okunma gizli</span>
                         </div>
                       </div>
                     </div>
@@ -217,3 +203,4 @@ export default async function KategoriSayfasi({
     </div>
   );
 }
+

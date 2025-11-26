@@ -1,0 +1,16 @@
+# API Marketplace - Find Awesome APIs | CollectAPI
+
+[CollectAPI](https://collectapi.com/tr/)
+[Dokümanlar](https://docs.collectapi.com)
+[API Yayınla](https://collectapi.com/tr/contact)
+[CollectAction.com](https://collectapi.com/tr/collectaction)
+[Giriş Yap](https://collectapi.com/tr/auth)
+[Türkçe](https://collectapi.com/tr/api/football/futbol-api)
+[Whatsapp Business API Maliyet Hesaplayıcı](https://collectapi.com/tr/tools/whatsapp-business-api-cost-calculator)
+[Online Görüntü Düzenleyici](https://collectapi.com/tr/tools/online-image-editor)
+[Nöbetçi Eczane](https://collectapi.com/tr/web-examples/nobetci-eczane)
+[Online Kredi Karşıştırma Platformu](https://collectapi.com/tr/web-examples/en-uygun-kredi-karsilastirma)
+[İletişim](https://collectapi.com/tr/contact)
+[Kullanım Koşulları](https://collectapi.com/tr/terms)
+[Gizlilik](https://collectapi.com/tr/privacy)
+[Dokümanlar](https://collectapi.com/tr/)

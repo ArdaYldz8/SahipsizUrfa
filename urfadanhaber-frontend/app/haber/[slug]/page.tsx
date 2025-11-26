@@ -6,13 +6,13 @@ import DovizKurlari from '@/components/sidebar/DovizKurlari';
 import HavaDurumu from '@/components/sidebar/HavaDurumu';
 import NobetciEczaneler from '@/components/sidebar/NobetciEczaneler';
 import LigPuanDurumu from '@/components/sidebar/LigPuanDurumu';
-import { getHaber, getHaberler } from '@/lib/api/strapi';
+import { getNewsDetail, getNews } from '@/lib/api/backend';
 
 // Tarih formatlama fonksiyonu
 function formatTarih(dateString: string): string {
   const date = new Date(dateString);
   const aylar = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
-                 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+    'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
   return `${date.getDate()} ${aylar[date.getMonth()]} ${date.getFullYear()}`;
 }
 
@@ -25,13 +25,13 @@ function formatSaat(dateString: string): string {
 }
 
 // Varsayılan görsel
-const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=500&fit=crop';
+const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=1200&h=600&fit=crop';
 
 export async function generateMetadata({ params }: {
   params: Promise<{ slug: string }>
 }): Promise<Metadata> {
   const { slug } = await params;
-  const haber = await getHaber(slug);
+  const haber = await getNewsDetail(slug);
 
   if (!haber) {
     return {
@@ -40,14 +40,14 @@ export async function generateMetadata({ params }: {
   }
 
   return {
-    title: `${haber.baslik} | UrfadanHaber`,
-    description: haber.ozet,
+    title: `${haber.headline} | UrfadanHaber`,
+    description: haber.description,
     openGraph: {
-      title: haber.baslik,
-      description: haber.ozet || '',
-      images: haber.gorsel ? [haber.gorsel] : undefined,
+      title: haber.headline,
+      description: haber.description || '',
+      images: haber.image ? [haber.image] : undefined,
       type: 'article',
-      publishedTime: haber.publishedAt,
+      publishedTime: haber.datePublished,
     },
   };
 }
@@ -58,188 +58,172 @@ export default async function HaberDetay({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params;
-  const haber = await getHaber(slug);
+  const haber = await getNewsDetail(slug);
 
   if (!haber) {
     notFound();
   }
 
-  // İlgili haberleri çek (aynı kategoriden)
-  const kategoriSlug = haber.kategori?.[0]?.slug;
-  const kategoriAd = haber.kategori?.[0]?.ad;
-  const ilgiliHaberler = kategoriSlug
-    ? (await getHaberler({ kategori: kategoriSlug, limit: 5 }))
-        .filter(h => h.id !== haber.id)
-        .slice(0, 3)
-    : [];
+  // İlgili haberleri çek
+  const tumHaberler = await getNews();
+  const ilgiliHaberler = tumHaberler
+    .filter(h => h.category === haber.category && h.id !== haber.id)
+    .slice(0, 4);
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Ana İçerik */}
-        <div className="lg:col-span-2">
-          {/* Breadcrumb */}
-          <nav className="text-sm mb-4">
-            <ol className="flex items-center space-x-2 text-gray-600">
-              <li><Link href="/" className="hover:text-primary">Ana Sayfa</Link></li>
-              <li>/</li>
-              {kategoriSlug && kategoriAd && (
-                <>
-                  <li><Link href={`/kategori/${kategoriSlug}`} className="hover:text-primary">{kategoriAd}</Link></li>
-                  <li>/</li>
-                </>
-              )}
-              <li className="text-gray-900 font-medium truncate max-w-xs">{haber.baslik}</li>
-            </ol>
-          </nav>
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Image Section */}
+      <div className="relative h-[500px] w-full bg-black">
+        <Image
+          src={haber.image || DEFAULT_IMAGE}
+          alt={haber.headline || 'Haber görseli'}
+          fill
+          className="object-cover opacity-90"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
 
-          {/* Kategori Badge */}
-          {kategoriSlug && kategoriAd && (
-            <div className="mb-4">
-              <Link
-                href={`/kategori/${kategoriSlug}`}
-                className="inline-block bg-primary text-white px-4 py-1 rounded-full text-sm font-semibold hover:bg-blue-700 transition"
-              >
-                {kategoriAd}
-              </Link>
-            </div>
-          )}
-
-          {/* Başlık */}
-          <h1 className="text-4xl font-bold text-gray-900 mb-4 leading-tight">
-            {haber.baslik}
-          </h1>
-
-          {/* Meta Bilgiler */}
-          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-6 pb-6 border-b">
-            {haber.yazar && (
-              <div className="flex items-center">
-                <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
-                </svg>
-                <span>{haber.yazar}</span>
-              </div>
-            )}
-            <div className="flex items-center">
-              <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-              </svg>
-              <time>{formatTarih(haber.publishedAt)} - {formatSaat(haber.publishedAt)}</time>
-            </div>
-            <div className="flex items-center">
-              <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-              </svg>
-              <span>{haber.okunma.toLocaleString('tr-TR')} görüntülenme</span>
-            </div>
+        {/* Breadcrumb Overlay */}
+        <div className="absolute top-6 left-0 right-0">
+          <div className="container mx-auto px-4">
+            <nav className="text-sm">
+              <ol className="flex items-center space-x-2 text-white/80">
+                <li><Link href="/" className="hover:text-white">Ana Sayfa</Link></li>
+                <li>/</li>
+                {haber.category && (
+                  <>
+                    <li><span className="capitalize">{haber.category}</span></li>
+                  </>
+                )}
+              </ol>
+            </nav>
           </div>
-
-          {/* Özet */}
-          {haber.ozet && (
-            <div className="bg-gray-50 border-l-4 border-primary p-4 mb-6">
-              <p className="text-lg text-gray-700 font-medium">{haber.ozet}</p>
-            </div>
-          )}
-
-          {/* Ana Görsel */}
-          {haber.gorsel && (
-            <div className="relative w-full h-[500px] mb-6 rounded-lg overflow-hidden">
-              <Image
-                src={haber.gorsel}
-                alt={haber.baslik || 'Haber görseli'}
-                fill
-                className="object-cover"
-                priority
-              />
-            </div>
-          )}
-
-          {/* Sosyal Paylaşım */}
-          <div className="flex items-center gap-3 mb-8 pb-6 border-b">
-            <span className="text-gray-600 font-medium">Paylaş:</span>
-            <a
-              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(haber.baslik)}&url=${encodeURIComponent(`https://urfadanhaber.com/haber/${haber.slug}`)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 bg-[#1DA1F2] text-white px-4 py-2 rounded-lg hover:bg-[#1a8cd8] transition"
-            >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-              </svg>
-              Twitter
-            </a>
-            <a
-              href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://urfadanhaber.com/haber/${haber.slug}`)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 bg-[#4267B2] text-white px-4 py-2 rounded-lg hover:bg-[#365899] transition"
-            >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-              </svg>
-              Facebook
-            </a>
-            <a
-              href={`https://wa.me/?text=${encodeURIComponent(haber.baslik + ' ' + `https://urfadanhaber.com/haber/${haber.slug}`)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 bg-[#25D366] text-white px-4 py-2 rounded-lg hover:bg-[#1faa52] transition"
-            >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.890-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
-              </svg>
-              WhatsApp
-            </a>
-          </div>
-
-          {/* Haber İçeriği */}
-          <div
-            className="prose prose-lg max-w-none prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4 prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-4 prose-ul:my-4 prose-li:text-gray-700"
-            dangerouslySetInnerHTML={{ __html: haber.icerik }}
-          />
-
-          {/* İlgili Haberler */}
-          {ilgiliHaberler.length > 0 && (
-            <div className="mt-12 pt-8 border-t">
-              <h2 className="text-2xl font-bold mb-6">İlgili Haberler</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {ilgiliHaberler.map((ilgiliHaber) => (
-                  <Link
-                    key={ilgiliHaber.id}
-                    href={`/haber/${ilgiliHaber.slug}`}
-                    className="group"
-                  >
-                    <div className="relative h-40 mb-3 rounded-lg overflow-hidden">
-                      <Image
-                        src={ilgiliHaber.gorsel || DEFAULT_IMAGE}
-                        alt={ilgiliHaber.baslik || 'Haber görseli'}
-                        fill
-                        className="object-cover group-hover:scale-105 transition duration-300"
-                      />
-                    </div>
-                    <h3 className="font-bold text-gray-900 group-hover:text-primary transition line-clamp-2 mb-2">
-                      {ilgiliHaber.baslik}
-                    </h3>
-                    <p className="text-sm text-gray-600">{ilgiliHaber.okunma.toLocaleString('tr-TR')} görüntülenme</p>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          <HavaDurumu />
-          <DovizKurlari />
-          <NobetciEczaneler />
-          <LigPuanDurumu />
-
-          {/* Reklam Alanı */}
-          <div className="bg-gray-200 rounded-lg h-64 flex items-center justify-center text-gray-500">
-            <span>Reklam Alanı<br />300x250</span>
+        {/* Title Overlay */}
+        <div className="absolute bottom-0 left-0 right-0">
+          <div className="container mx-auto px-4 pb-12">
+            <div className="max-w-4xl">
+              {haber.category && (
+                <span className="inline-block bg-red-600 text-white px-4 py-1.5 rounded-full text-sm font-bold uppercase mb-4">
+                  {haber.category}
+                </span>
+              )}
+              <h1 className="text-4xl md:text-5xl font-black text-white mb-4 leading-tight drop-shadow-2xl">
+                {haber.headline}
+              </h1>
+              <div className="flex items-center gap-6 text-white/90 text-sm">
+                <div className="flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                  </svg>
+                  <span>{formatTarih(haber.datePublished)}, {formatSaat(haber.datePublished)}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                  </svg>
+                  <span>{haber.publisher || 'UrfadanHaber'}</span>
+                </div>
+              </div>
+            </div>
           </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Article Content */}
+          <div className="lg:col-span-2">
+            <article className="bg-white rounded-2xl shadow-xl p-8 md:p-12">
+              {/* Description/Lead */}
+              {haber.description && (
+                <p className="text-xl text-gray-700 font-medium leading-relaxed mb-8 pb-8 border-b-2 border-gray-100">
+                  {haber.description}
+                </p>
+              )}
+
+              {/* Article Body */}
+              <div
+                className="prose prose-lg max-w-none prose-headings:font-bold prose-headings:text-gray-900 prose-p:text-gray-700 prose-p:leading-relaxed prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-900 prose-img:rounded-xl prose-img:shadow-lg"
+                dangerouslySetInnerHTML={{ __html: haber.content || '' }}
+              />
+
+              {/* Social Share */}
+              <div className="mt-12 pt-8 border-t-2 border-gray-100">
+                <h3 className="text-lg font-bold text-gray-900 mb-4">Haberi Paylaş</h3>
+                <div className="flex gap-3">
+                  <button className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                    </svg>
+                    Facebook
+                  </button>
+                  <button className="flex items-center gap-2 px-5 py-2.5 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-all shadow-md hover:shadow-lg">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z" />
+                    </svg>
+                    Twitter
+                  </button>
+                  <button className="flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all shadow-md hover:shadow-lg">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.362.792 2.678 1.04 2.861.248.181 3.387 5.168 8.192 7.247 1.144.495 2.039.79 2.737.987 1.148.365 2.194.314 3.018.19.922-.138 1.76-.564 2.009-1.12.248-.556.248-1.034.173-1.12-.075-.087-.248-.149-.545-.298z" />
+                    </svg>
+                    WhatsApp
+                  </button>
+                </div>
+              </div>
+            </article>
+
+            {/* Related News */}
+            {ilgiliHaberler.length > 0 && (
+              <section className="mt-12">
+                <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                  <span className="w-1.5 h-8 bg-primary rounded-full"></span>
+                  İlgili Haberler
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {ilgiliHaberler.map((ilgiliHaber) => (
+                    <Link
+                      key={ilgiliHaber.id}
+                      href={`/haber/${ilgiliHaber.id}`}
+                      className="group block"
+                    >
+                      <article className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all h-full border border-gray-100">
+                        <div className="relative h-48 overflow-hidden">
+                          <Image
+                            src={ilgiliHaber.image || DEFAULT_IMAGE}
+                            alt={ilgiliHaber.headline || 'Haber görseli'}
+                            fill
+                            className="object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
+                        </div>
+                        <div className="p-5">
+                          <h3 className="text-lg font-bold text-gray-900 group-hover:text-primary transition-colors line-clamp-2 mb-2">
+                            {ilgiliHaber.headline}
+                          </h3>
+                          <p className="text-sm text-gray-600 line-clamp-2">
+                            {ilgiliHaber.description}
+                          </p>
+                        </div>
+                      </article>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <aside className="lg:col-span-1">
+            <div className="sticky top-24 space-y-6">
+              <HavaDurumu />
+              <DovizKurlari />
+              <NobetciEczaneler />
+              <LigPuanDurumu />
+            </div>
+          </aside>
         </div>
       </div>
     </div>

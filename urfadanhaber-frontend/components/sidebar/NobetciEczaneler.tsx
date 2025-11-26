@@ -1,118 +1,123 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
+import { getPharmacies } from '@/lib/api/external';
 
-interface Eczane {
-  ad: string;
-  adres: string;
-  telefon: string;
-  ilce: string;
+interface Pharmacy {
+  name: string;
+  address: string;
+  phone: string;
+  dist: string;
 }
 
 export default function NobetciEczaneler() {
-  const [eczaneler, setEczaneler] = useState<Eczane[]>([]);
+  const [date, setDate] = useState('');
+  const [pharmacies, setPharmacies] = useState<Pharmacy[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Mock veri - gerçek uygulamada API'dan gelecek
-    setTimeout(() => {
-      setEczaneler([
-        {
-          ad: 'Şifa Eczanesi',
-          adres: 'Haliliye Merkez, Atatürk Bulvarı No:45',
-          telefon: '0414 215 34 56',
-          ilce: 'Haliliye'
-        },
-        {
-          ad: 'Sağlık Eczanesi',
-          adres: 'Karaköprü, Zübeyde Hanım Cad. No:12',
-          telefon: '0414 318 76 54',
-          ilce: 'Karaköprü'
-        },
-        {
-          ad: 'Merkez Eczanesi',
-          adres: 'Eyyübiye, Cumhuriyet Meydanı No:8',
-          telefon: '0414 225 89 32',
-          ilce: 'Eyyübiye'
-        }
-      ]);
+    // Tarihi formatla
+    const d = new Date();
+    setDate(d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }));
+
+    // Veriyi çek
+    async function fetchData() {
+      const data = await getPharmacies();
+      setPharmacies(data);
       setLoading(false);
-    }, 500);
+    }
+    fetchData();
   }, []);
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-5 animate-pulse">
-        <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
-        <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-20 bg-gray-100 rounded"></div>
-          ))}
+      <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 animate-pulse">
+        <div className="h-6 bg-gray-200 rounded w-1/2 mb-4"></div>
+        <div className="space-y-4">
+          <div className="h-24 bg-gray-200 rounded"></div>
+          <div className="h-24 bg-gray-200 rounded"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-5">
-      <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center">
-        <svg className="w-5 h-5 mr-2 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L9 4.323V3a1 1 0 011-1zm-5 8.274l-.818 2.552c.25.112.526.174.818.174.292 0 .569-.062.818-.174L5 10.274zm10 0l-.818 2.552c.25.112.526.174.818.174.292 0 .569-.062.818-.174L15 10.274z" clipRule="evenodd" />
-        </svg>
-        Nöbetçi Eczaneler
-      </h3>
-
-      <div className="text-xs text-gray-500 mb-3 flex items-center">
-        <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-        </svg>
-        {new Date().toLocaleDateString('tr-TR', {
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric'
-        })}
+    <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+      {/* Header */}
+      <div className="flex items-center gap-2 mb-2">
+        <div className="text-green-600">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+          </svg>
+        </div>
+        <h3 className="text-xl font-bold text-gray-900">Nöbetçi Eczaneler</h3>
       </div>
 
-      <div className="space-y-3">
-        {eczaneler.map((eczane, index) => (
-          <div
-            key={index}
-            className="border-l-4 border-green-500 bg-green-50 p-3 rounded hover:bg-green-100 transition"
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <h4 className="font-bold text-gray-900 text-sm mb-1">{eczane.ad}</h4>
-                <p className="text-xs text-gray-600 mb-1 flex items-start">
-                  <svg className="w-3 h-3 mr-1 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+      <div className="flex items-center gap-2 text-gray-500 text-sm mb-6">
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <span>{date}</span>
+      </div>
+
+      {/* List */}
+      <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+        {pharmacies.length === 0 ? (
+          <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+            <p>Nöbetçi eczane bilgisi yüklenemedi.</p>
+            <p className="text-xs mt-1">Lütfen daha sonra tekrar deneyiniz.</p>
+          </div>
+        ) : (
+          pharmacies.map((pharmacy, index) => (
+            <div key={index} className="bg-green-50 rounded-lg p-4 relative overflow-hidden border-l-4 border-green-500 transition-all hover:shadow-md">
+              <div className="pr-20"> {/* Badge için yer bırak */}
+                <h4 className="font-bold text-gray-900 text-lg mb-1">{pharmacy.name}</h4>
+
+                <div className="flex items-start gap-2 text-gray-600 text-sm mb-2">
+                  <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
-                  <span>{eczane.adres}</span>
-                </p>
-                <div className="flex items-center justify-between">
-                  <a
-                    href={`tel:${eczane.telefon}`}
-                    className="text-xs text-green-700 font-semibold hover:underline flex items-center"
-                  >
-                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                    </svg>
-                    {eczane.telefon}
-                  </a>
-                  <span className="text-xs bg-green-600 text-white px-2 py-0.5 rounded-full">
-                    {eczane.ilce}
-                  </span>
+                  <span>{pharmacy.address}</span>
+                </div>
+
+                <div className="flex items-center gap-2 text-green-700 font-medium">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                  <span>{pharmacy.phone}</span>
                 </div>
               </div>
+
+              {/* District Badge */}
+              <div className="absolute top-4 right-4 bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+                {pharmacy.dist}
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
-      <div className="mt-4 pt-3 border-t text-center">
-        <p className="text-xs text-gray-500">
-          Acil durumlarda <a href="tel:112" className="text-green-600 font-semibold hover:underline">112</a> arayabilirsiniz
-        </p>
+      <div className="mt-6 text-center text-sm text-gray-500 border-t border-gray-100 pt-4">
+        Acil durumlarda <span className="text-green-600 font-bold">112</span> arayabilirsiniz
       </div>
+
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #d1d5db;
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #9ca3af;
+        }
+      `}</style>
     </div>
   );
 }

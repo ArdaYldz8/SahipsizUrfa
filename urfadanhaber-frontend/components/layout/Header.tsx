@@ -1,130 +1,209 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import AramaKutusu from '@/components/AramaKutusu';
+import { getWeather, getCurrency, getPrayerTimes } from '@/lib/api/external';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [weather, setWeather] = useState<{ temp: number; unit: string } | null>(null);
+  const [currency, setCurrency] = useState<{ usd: number; eur?: number } | null>(null);
+  const [nextPrayer, setNextPrayer] = useState<{ vakit: string; saat: string } | null>(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      const weatherData = await getWeather();
+      if (weatherData) setWeather(weatherData);
+
+      const currencyData = await getCurrency();
+      if (currencyData) setCurrency(currencyData);
+
+      const prayerData = await getPrayerTimes();
+      if (prayerData && prayerData.length > 0) {
+        const now = new Date();
+        const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+        const next = prayerData.find((p: any) => p.saat > currentTime);
+        if (next) setNextPrayer(next);
+      }
+    }
+    fetchData();
+
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 100);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const categories = [
-    { name: 'Ana Sayfa', href: '/' },
-    { name: 'Şanlıurfa', href: '/kategori/sanliurfa' },
-    { name: 'Türkiye', href: '/kategori/turkiye' },
-    { name: 'Spor', href: '/kategori/spor' },
-    { name: 'Magazin', href: '/kategori/magazin' },
-    { name: 'Ekonomi', href: '/kategori/ekonomi' },
-    { name: 'Sağlık', href: '/kategori/saglik' },
-    { name: 'Köşe Yazarları', href: '/kose-yazarlari' },
-    { name: 'Taziyeler', href: '/taziyeler' },
+    { name: 'GÜNCEL', href: '/', icon: null },
+    { name: 'ŞANLIURFA', href: '/kategori/sanliurfa', icon: null },
+    { name: 'TÜRKİYE', href: '/kategori/turkiye', icon: null },
+    { name: 'SPOR', href: '/kategori/spor', icon: null },
+    { name: 'EKONOMİ', href: '/kategori/ekonomi', icon: null },
+    { name: 'EĞİTİM', href: '/kategori/egitim', icon: null },
+    { name: 'SAĞLIK', href: '/kategori/saglik', icon: null },
+    { name: 'KÜLTÜR SANAT', href: '/kategori/kultur-sanat', icon: null },
+    { name: 'YAZARLAR', href: '/kose-yazarlari', icon: null },
   ];
 
   return (
-    <header className="bg-white shadow-md sticky top-0 z-50">
-      {/* Top Bar */}
-      <div className="bg-primary text-white">
-        <div className="max-w-7xl mx-auto px-4 py-2 flex justify-between items-center text-sm">
+    <header className="font-sans">
+      {/* Top Bar - Dense Data */}
+      <div className="bg-[#0f172a] text-gray-300 text-xs border-b border-gray-800">
+        <div className="max-w-7xl mx-auto px-4 h-8 flex justify-between items-center">
+          {/* Left: Date & Location */}
           <div className="flex items-center gap-4">
-            <span className="hidden md:block">{new Date().toLocaleDateString('tr-TR', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            })}</span>
-            <span className="md:hidden">{new Date().toLocaleDateString('tr-TR', {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric'
-            })}</span>
+            <span className="flex items-center gap-1.5 text-gray-400">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+              {new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'long' })}
+            </span>
+            <span className="hidden md:flex items-center gap-1.5 text-gray-400 border-l border-gray-700 pl-4">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              Şanlıurfa
+            </span>
           </div>
-          <div className="flex items-center gap-4">
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-gray-200">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"/>
-              </svg>
-            </a>
-            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:text-gray-200">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-              </svg>
-            </a>
+
+          {/* Right: Financials & Weather */}
+          <div className="flex items-center gap-4 overflow-hidden">
+            {/* Ticker Effect for Data */}
+            <div className="flex items-center gap-4 animate-none md:animate-none">
+              {currency && (
+                <>
+                  <div className="flex items-center gap-1 text-green-400">
+                    <span className="font-bold">$</span>
+                    <span>{currency.usd?.toFixed(2)}</span>
+                    <svg className="w-3 h-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
+                  </div>
+                  <div className="flex items-center gap-1 text-green-400">
+                    <span className="font-bold">€</span>
+                    <span>{currency.eur?.toFixed(2)}</span>
+                    <svg className="w-3 h-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
+                  </div>
+                </>
+              )}
+              {weather && (
+                <div className="flex items-center gap-1 text-blue-300 border-l border-gray-700 pl-4">
+                  <span className="font-bold">{weather.temp}°</span>
+                  <span className="text-gray-400 hidden sm:inline">Parçalı Bulutlu</span>
+                </div>
+              )}
+              {nextPrayer && (
+                <div className="flex items-center gap-1.5 text-yellow-500 border-l border-gray-700 pl-4 font-medium">
+                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" /></svg>
+                  <span>{nextPrayer.vakit}: {nextPrayer.saat}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Social Icons */}
+            <div className="flex items-center gap-2 pl-4 border-l border-gray-700">
+              <a href="#" className="hover:text-white transition-colors"><svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" /></svg></a>
+              <a href="#" className="hover:text-white transition-colors"><svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z" /></svg></a>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Logo & Search */}
-      <div className="max-w-7xl mx-auto px-4 py-4">
-        <div className="flex justify-between items-center">
-          <Link href="/" className="flex items-center">
-            <h1 className="text-3xl md:text-4xl font-bold text-primary">
-              UrfadanHaber
-            </h1>
-            <span className="ml-3 text-sm text-gray-600 hidden md:block">
-              Şanlıurfa&apos;nın Haber Sitesi
-            </span>
+      {/* Main Header Area (Logo & Search) */}
+      <div className="bg-white py-4 border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="relative w-64 h-16 transition-transform group-hover:scale-105 duration-300">
+              <Image
+                src="/logo.svg"
+                alt="UrfadanHaber Logo"
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>
           </Link>
 
-          <div className="flex items-center gap-4">
-            <AramaKutusu />
-
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition"
-              aria-label="Menü"
-            >
-              {mobileMenuOpen ? (
-                <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              ) : (
-                <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              )}
-            </button>
+          <div className="w-full md:w-auto flex items-center gap-4">
+            {/* Ad Space Placeholder (Optional) */}
+            <div className="hidden lg:block w-[400px] h-[60px] bg-gray-100 rounded-md flex items-center justify-center text-gray-400 text-xs border border-gray-200 border-dashed">
+              REKLAM ALANI 468x60
+            </div>
+            <div className="flex-1 md:flex-none">
+              <AramaKutusu />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Desktop Navigation */}
-      <nav className="bg-gray-100 border-t border-gray-200 hidden md:block">
+      {/* Sticky Navigation Bar */}
+      <div className={`bg-primary text-white shadow-md transition-all duration-300 z-50 ${scrolled ? 'fixed top-0 left-0 right-0' : 'relative'}`}>
         <div className="max-w-7xl mx-auto px-4">
-          <ul className="flex items-center gap-1 overflow-x-auto">
-            {categories.map((category) => (
-              <li key={category.href}>
+          <div className="flex justify-between items-center h-12">
+            {/* Desktop Nav */}
+            <nav className="hidden md:flex items-center gap-1 h-full overflow-x-auto no-scrollbar">
+              {/* Home Icon */}
+              <Link href="/" className="h-full px-3 flex items-center justify-center hover:bg-white/10 transition-colors border-r border-white/10">
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg>
+              </Link>
+
+              {categories.map((category) => (
                 <Link
+                  key={category.href}
                   href={category.href}
-                  className="block px-4 py-3 text-gray-700 hover:bg-primary hover:text-white transition-colors whitespace-nowrap"
+                  className="h-full px-4 flex items-center font-bold text-sm tracking-wide hover:bg-white/10 transition-colors whitespace-nowrap"
                 >
                   {category.name}
                 </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </nav>
-
-      {/* Mobile Navigation */}
-      {mobileMenuOpen && (
-        <nav className="md:hidden bg-white border-t border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 py-2">
-            <ul className="space-y-1">
-              {categories.map((category) => (
-                <li key={category.href}>
-                  <Link
-                    href={category.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                  >
-                    {category.name}
-                  </Link>
-                </li>
               ))}
-            </ul>
+            </nav>
+
+            {/* Mobile Menu Toggle */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden p-2 text-white hover:bg-white/10 rounded"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {mobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+
+            {/* Extra Actions */}
+            <div className="hidden md:flex items-center h-full border-l border-white/10 pl-4 ml-4">
+              <button className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+              </button>
+            </div>
           </div>
-        </nav>
-      )}
+        </div>
+
+        {/* Mobile Nav Dropdown */}
+        <div className={`md:hidden bg-[#1e3a8a] border-t border-white/10 overflow-hidden transition-all duration-300 ${mobileMenuOpen ? 'max-h-screen' : 'max-h-0'}`}>
+          <nav className="flex flex-col p-4 space-y-2">
+            {categories.map((category) => (
+              <Link
+                key={category.href}
+                href={category.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-4 py-3 hover:bg-white/10 rounded text-sm font-bold"
+              >
+                {category.name}
+              </Link>
+            ))}
+          </nav>
+        </div>
+      </div>
+
+      {/* Breaking News Ticker */}
+      <div className="border-b border-gray-200">
+        <BreakingNews />
+      </div>
     </header>
   );
 }
+
+import BreakingNews from '@/components/BreakingNews';

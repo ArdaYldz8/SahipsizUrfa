@@ -1,16 +1,32 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { Metadata } from 'next';
 import DovizKurlari from '@/components/sidebar/DovizKurlari';
 import HavaDurumu from '@/components/sidebar/HavaDurumu';
 import NobetciEczaneler from '@/components/sidebar/NobetciEczaneler';
 import LigPuanDurumu from '@/components/sidebar/LigPuanDurumu';
-import { getHaberler } from '@/lib/api/strapi';
+import MostReadWidget from '@/components/sidebar/MostReadWidget';
+import AuthorsWidget from '@/components/sidebar/AuthorsWidget';
+import HeroSection from '@/components/home/HeroSection';
+import HeadlinesStrip from '@/components/home/HeadlinesStrip';
+import CategoryBlock from '@/components/home/CategoryBlock';
+import { getNews } from '@/lib/api/backend';
+
+export const metadata: Metadata = {
+  title: 'UrfadanHaber - Şanlıurfa\'nın En Güncel Haber Sitesi',
+  description: 'Şanlıurfa son dakika haberleri, güncel gelişmeler ve yerel haberler UrfadanHaber\'de.',
+  openGraph: {
+    title: 'UrfadanHaber - Şanlıurfa\'nın En Güncel Haber Sitesi',
+    description: 'Şanlıurfa son dakika haberleri, güncel gelişmeler ve yerel haberler UrfadanHaber\'de.',
+    type: 'website',
+  },
+};
 
 // Tarih formatlama fonksiyonu
 function formatTarih(dateString: string): string {
   const date = new Date(dateString);
   const aylar = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
-                 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+    'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
   return `${date.getDate()} ${aylar[date.getMonth()]} ${date.getFullYear()}`;
 }
 
@@ -18,139 +34,129 @@ function formatTarih(dateString: string): string {
 const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=500&fit=crop';
 
 export default async function Home() {
-  // Strapi'den haberleri çek
-  const haberler = await getHaberler({ limit: 6 });
+  // Backend'den haberleri çek
+  const haberlerRaw = await getNews();
 
   // Eğer haber yoksa boş mesaj göster
-  if (!haberler || haberler.length === 0) {
+  if (!haberlerRaw || haberlerRaw.length === 0) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
-          <p className="text-gray-700">Henüz haber eklenmemiş. Lütfen Strapi admin panelinden haber ekleyin.</p>
+          <p className="text-gray-700">Henüz haber eklenmemiş. Lütfen backend servisini kontrol edin.</p>
         </div>
       </div>
     );
   }
 
-  // Manşet (ilk haber)
-  const mansetHaber = haberler[0];
-  const digerHaberler = haberler.slice(1);
+  // Map data to match component interfaces
+  const haberler = haberlerRaw.map((item: any) => ({
+    id: item.id,
+    title: item.headline,
+    slug: item.slug || item.id.toString(), // Use actual slug from backend, fallback to ID
+    image_url: item.image || DEFAULT_IMAGE,
+    category: item.category || 'GÜNCEL',
+    published_at: item.datePublished,
+    description: item.description
+  }));
+
+  // Split data for different sections
+  // 1. Hero Section (Top 10: 5 Slider + 5 Side)
+  const heroNews = haberler.slice(0, 10);
+
+  // 2. Headlines Strip (Next 10)
+  const stripNews = haberler.slice(10, 20);
+
+  // 3. Main Content Grid (Remaining)
+  const gridNews = haberler.slice(5); // Show more news (starting from index 5)
+
+  // Mock data for categories (using same news for demo)
+  const sanliurfaNews = haberler.slice(0, 4);
+  const sporNews = haberler.slice(4, 8);
+  const ekonomiNews = haberler.slice(8, 12);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Ana İçerik */}
-        <div className="lg:col-span-2">
-          {/* Manşet */}
-          <section className="mb-8">
-            <Link href={`/haber/${mansetHaber.slug}`} className="block">
-              <div className="relative h-96 rounded-lg overflow-hidden shadow-lg group">
-                <Image
-                  src={mansetHaber.gorsel || DEFAULT_IMAGE}
-                  alt={mansetHaber.baslik || 'Haber görseli'}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                  priority
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent flex items-end">
-                  <div className="p-8 text-white">
-                    <span className="bg-red-600 px-3 py-1 rounded text-sm font-semibold">SON DAKİKA</span>
-                    <h2 className="text-4xl font-bold mt-4 mb-2 group-hover:text-blue-300 transition-colors">
-                      {mansetHaber.baslik}
-                    </h2>
-                    <p className="text-lg opacity-90">
-                      {mansetHaber.ozet}
-                    </p>
-                    <div className="flex items-center gap-4 text-sm mt-4">
-                      <span>{formatTarih(mansetHaber.publishedAt)}</span>
-                      <span>•</span>
-                      <span>{mansetHaber.okunma} görüntülenme</span>
-                    </div>
-                  </div>
-                </div>
+    <div className="bg-white min-h-screen font-sans">
+      {/* 1. Hero Section */}
+      <section className="max-w-7xl mx-auto px-4 pt-6 pb-8">
+        <HeroSection news={heroNews} />
+      </section>
+
+      {/* 2. Headlines Strip */}
+      <section className="mb-8">
+        <HeadlinesStrip news={stripNews.length > 0 ? stripNews : heroNews} />
+      </section>
+
+      {/* 3. Main Content Area */}
+      <div className="max-w-7xl mx-auto px-4 pb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+          {/* Left Column (News Grid & Categories) */}
+          <div className="lg:col-span-2 space-y-10">
+
+            {/* Latest News Grid */}
+            <section>
+              <div className="flex items-center justify-between mb-6 border-b-2 border-gray-100 pb-2">
+                <h2 className="text-2xl font-bold text-gray-900 border-l-4 border-primary pl-3">
+                  SON HABERLER
+                </h2>
               </div>
-            </Link>
-          </section>
 
-          {/* Haberler */}
-          <section>
-            <h2 className="text-2xl font-bold mb-6 text-gray-800">Son Haberler</h2>
-            <div className="space-y-6">
-              {digerHaberler.map((haber) => (
-                <Link
-                  key={haber.id}
-                  href={`/haber/${haber.slug}`}
-                  className="block"
-                >
-                  <article className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow group">
-                    <div className="md:flex">
-                      <div className="md:w-1/3 relative h-48">
-                        <Image
-                          src={haber.gorsel || DEFAULT_IMAGE}
-                          alt={haber.baslik || 'Haber görseli'}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
-                      <div className="p-6 md:w-2/3">
-                        <span className="text-sm text-primary font-semibold">
-                          {haber.kategori?.[0]?.ad || 'Genel'}
-                        </span>
-                        <h3 className="text-xl font-bold text-gray-800 mt-2 mb-3 group-hover:text-primary transition-colors">
-                          {haber.baslik}
-                        </h3>
-                        <p className="text-gray-600 mb-4">{haber.ozet}</p>
-                        <div className="flex justify-between items-center text-sm text-gray-500">
-                          <div className="flex items-center gap-3">
-                            <span>{formatTarih(haber.publishedAt)}</span>
-                            <span>•</span>
-                            <span>{haber.okunma} görüntülenme</span>
-                          </div>
-                          <span className="text-primary group-hover:underline font-semibold">
-                            Devamını Oku →
-                          </span>
-                        </div>
-                      </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {gridNews.length > 0 ? gridNews.map((haber: any) => (
+                  <Link
+                    key={haber.id}
+                    href={`/haber/${haber.slug}`}
+                    className="group block bg-white border border-gray-100 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300"
+                  >
+                    <div className="relative h-48 overflow-hidden">
+                      <Image
+                        src={haber.image_url}
+                        alt={haber.title}
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                      <span className="absolute top-2 right-2 bg-primary text-white text-xs font-bold px-2 py-1 rounded">
+                        {haber.category}
+                      </span>
                     </div>
-                  </article>
-                </Link>
-              ))}
-            </div>
-          </section>
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
-          <HavaDurumu />
-          <DovizKurlari />
-          <NobetciEczaneler />
-          <LigPuanDurumu />
-
-          {/* En Çok Okunanlar */}
-          <div className="bg-white rounded-lg shadow-md p-4">
-            <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center">
-              <svg className="w-5 h-5 mr-2 text-red-600" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
-                <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd"/>
-              </svg>
-              En Çok Okunanlar
-            </h3>
-            <ol className="space-y-3">
-              {haberler.slice(0, 5).map((haber, index) => (
-                <li key={haber.id} className="flex gap-3 hover:bg-gray-50 p-2 rounded transition-colors cursor-pointer">
-                  <span className="font-bold text-primary text-lg">{index + 1}</span>
-                  <Link href={`/haber/${haber.slug}`} className="text-sm text-gray-700 hover:text-primary">
-                    {haber.baslik}
+                    <div className="p-4">
+                      <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                        {haber.title}
+                      </h3>
+                      <p className="text-gray-600 text-sm line-clamp-2 mb-3">
+                        {haber.description}
+                      </p>
+                      <span className="text-xs text-gray-400 flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        {formatTarih(haber.published_at)}
+                      </span>
+                    </div>
                   </Link>
-                </li>
-              ))}
-            </ol>
+                )) : (
+                  <p className="text-gray-500 col-span-2">Daha fazla haber bulunamadı.</p>
+                )}
+              </div>
+            </section>
+
+            {/* Category Blocks */}
+            <CategoryBlock title="ŞANLIURFA" href="/kategori/sanliurfa" news={sanliurfaNews} />
+            <CategoryBlock title="SPOR" href="/kategori/spor" news={sporNews} color="text-red-600" />
+            <CategoryBlock title="EKONOMİ" href="/kategori/ekonomi" news={ekonomiNews} color="text-green-600" />
+
           </div>
 
-          {/* Reklam Alanı */}
-          <div className="bg-gray-200 rounded-lg h-64 flex items-center justify-center text-gray-500">
-            <span>Reklam Alanı<br />300x250</span>
-          </div>
+          {/* Right Column (Sidebar) */}
+          <aside className="lg:col-span-1 space-y-8">
+            <div className="sticky top-24 space-y-8">
+              <MostReadWidget news={heroNews.slice(0, 5)} />
+              <AuthorsWidget />
+              <HavaDurumu />
+              <DovizKurlari />
+              <NobetciEczaneler />
+              <LigPuanDurumu />
+            </div>
+          </aside>
+
         </div>
       </div>
     </div>
