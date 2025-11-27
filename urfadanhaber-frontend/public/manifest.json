@@ -1,0 +1,21 @@
+{
+    "name": "Urfadan Haber",
+    "short_name": "UrfadanHaber",
+    "description": "Şanlıurfa'nın en güncel haber sitesi",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#009036",
+    "icons": [
+        {
+            "src": "/icons/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/icons/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

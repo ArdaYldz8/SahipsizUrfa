@@ -7,6 +7,7 @@ import HavaDurumu from '@/components/sidebar/HavaDurumu';
 import NobetciEczaneler from '@/components/sidebar/NobetciEczaneler';
 import LigPuanDurumu from '@/components/sidebar/LigPuanDurumu';
 import { getNewsDetail, getNews } from '@/lib/api/backend';
+import CommentSection from '@/components/news/CommentSection';
 
 // Tarih formatlama fonksiyonu
 function formatTarih(dateString: string): string {
@@ -175,6 +176,9 @@ export default async function HaberDetay({
                 </div>
               </div>
             </article>
+
+            {/* Comment Section */}
+            <CommentSection newsId={haber.id} />
 
             {/* Related News */}
             {ilgiliHaberler.length > 0 && (

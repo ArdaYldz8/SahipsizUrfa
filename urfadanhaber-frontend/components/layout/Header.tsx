@@ -48,6 +48,8 @@ export default function Header() {
     { name: 'EĞİTİM', href: '/kategori/egitim', icon: null },
     { name: 'SAĞLIK', href: '/kategori/saglik', icon: null },
     { name: 'KÜLTÜR SANAT', href: '/kategori/kultur-sanat', icon: null },
+    { name: 'FOTO GALERİ', href: '/foto-galeri', icon: null },
+    { name: 'VİDEO GALERİ', href: '/video-galeri', icon: null },
     { name: 'YAZARLAR', href: '/kose-yazarlari', icon: null },
   ];
 
@@ -93,7 +95,7 @@ export default function Header() {
                 </div>
               )}
               {nextPrayer && (
-                <div className="flex items-center gap-1.5 text-yellow-500 border-l border-gray-700 pl-4 font-medium">
+                <div className="flex items-center gap-1.5 text-secondary border-l border-gray-700 pl-4 font-medium">
                   <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" /></svg>
                   <span>{nextPrayer.vakit}: {nextPrayer.saat}</span>
                 </div>
@@ -137,13 +139,13 @@ export default function Header() {
       </div>
 
       {/* Sticky Navigation Bar */}
-      <div className={`bg-primary text-white shadow-md transition-all duration-300 z-50 ${scrolled ? 'fixed top-0 left-0 right-0' : 'relative'}`}>
+      <div className={`bg-primary text-white shadow-md transition-all duration-300 z-50 border-b-4 border-secondary ${scrolled ? 'fixed top-0 left-0 right-0' : 'relative'}`}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between items-center h-12">
             {/* Desktop Nav */}
             <nav className="hidden md:flex items-center gap-1 h-full overflow-x-auto no-scrollbar">
               {/* Home Icon */}
-              <Link href="/" className="h-full px-3 flex items-center justify-center hover:bg-white/10 transition-colors border-r border-white/10">
+              <Link href="/" className="h-full px-3 flex items-center justify-center hover:bg-white/10 hover:text-secondary transition-colors border-r border-white/10">
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg>
               </Link>
 
@@ -151,7 +153,7 @@ export default function Header() {
                 <Link
                   key={category.href}
                   href={category.href}
-                  className="h-full px-4 flex items-center font-bold text-sm tracking-wide hover:bg-white/10 transition-colors whitespace-nowrap"
+                  className="h-full px-3 flex items-center font-bold text-sm hover:bg-white/10 hover:text-secondary transition-colors whitespace-nowrap"
                 >
                   {category.name}
                 </Link>
