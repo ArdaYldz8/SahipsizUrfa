@@ -33,6 +33,8 @@ function formatTarih(dateString: string): string {
 // Varsayılan görsel
 const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=500&fit=crop';
 
+export const revalidate = 0; // Disable cache for fresh data
+
 export default async function Home() {
   // Backend'den haberleri çek
   const haberlerRaw = await getNews();
@@ -66,8 +68,8 @@ export default async function Home() {
   // 2. Headlines Strip (Next 10)
   const stripNews = haberler.slice(10, 20);
 
-  // 3. Main Content Grid (Remaining)
-  const gridNews = haberler.slice(5); // Show more news (starting from index 5)
+  // 3. Main Content Grid (Show ALL news for now so user can see their new post)
+  const gridNews = haberler;
 
   // Mock data for categories (using same news for demo)
   const sanliurfaNews = haberler.slice(0, 4);

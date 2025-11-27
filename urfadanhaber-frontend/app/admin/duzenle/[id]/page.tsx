@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { use } from 'react';
 import Editor from '@/components/Editor';
+import { supabase } from '@/lib/supabase/client';
 
 export default function HaberDuzenle({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
@@ -29,13 +30,16 @@ export default function HaberDuzenle({ params }: { params: Promise<{ id: string 
 
     async function loadNews() {
         try {
-            const res = await fetch(`http://localhost:8080/api/news/${id}`);
-            if (!res.ok) {
-                alert('Haber bulunamadı');
-                router.push('/admin');
-                return;
+            const { data, error } = await supabase
+                .from('news')
+                .select('*')
+                .eq('id', id)
+                .single();
+
+            if (error) {
+                throw error;
             }
-            const data = await res.json();
+
             setFormData({
                 headline: data.headline,
                 description: data.description,
@@ -45,11 +49,12 @@ export default function HaberDuzenle({ params }: { params: Promise<{ id: string 
                 publisher: data.publisher,
                 image: data.image,
                 slug: data.slug,
-                isAccessibleForFree: data.isAccessibleForFree
+                isAccessibleForFree: data.is_accessible_for_free
             });
         } catch (error) {
             console.error('Yükleme hatası:', error);
             alert('Haber yüklenirken hata oluştu');
+            router.push('/admin');
         } finally {
             setLoading(false);
         }
@@ -64,31 +69,24 @@ export default function HaberDuzenle({ params }: { params: Promise<{ id: string 
         if (!e.target.files?.[0]) return;
 
         const file = e.target.files[0];
-        const data = new FormData();
-        data.append('file', file);
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `${fileName}`;
 
         try {
-            const token = localStorage.getItem('token');
-            const res = await fetch('http://localhost:8080/api/upload', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
-                body: data,
-            });
+            const { error: uploadError } = await supabase.storage
+                .from('images')
+                .upload(filePath, file);
 
-            if (res.ok) {
-                const json = await res.json();
-                setFormData(prev => ({ ...prev, image: json.url }));
-            } else if (res.status === 401) {
-                alert('Oturum süreniz dolmuş.');
-                router.push('/admin/login');
-            } else {
-                alert('Resim yüklenirken hata oluştu');
+            if (uploadError) {
+                throw uploadError;
             }
+
+            const { data } = supabase.storage.from('images').getPublicUrl(filePath);
+            setFormData(prev => ({ ...prev, image: data.publicUrl }));
         } catch (error) {
             console.error('Upload error:', error);
-            alert('Resim yüklenemedi');
+            alert('Resim yüklenemedi. Lütfen "images" adında public bir bucket oluşturduğunuzdan emin olun.');
         }
     };
 
@@ -97,28 +95,31 @@ export default function HaberDuzenle({ params }: { params: Promise<{ id: string 
         setSaving(true);
 
         try {
-            const token = localStorage.getItem('token');
-            const res = await fetch(`http://localhost:8080/api/news/${id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(formData),
-            });
+            const { error } = await supabase
+                .from('news')
+                .update({
+                    headline: formData.headline,
+                    description: formData.description,
+                    content: formData.content,
+                    category: formData.category,
+                    author: formData.author,
+                    publisher: formData.publisher,
+                    image: formData.image,
+                    slug: formData.slug,
+                    is_accessible_for_free: formData.isAccessibleForFree,
+                    date_modified: new Date().toISOString(),
+                })
+                .eq('id', id);
 
-            if (res.ok) {
-                alert('Haber başarıyla güncellendi!');
-                router.push('/admin');
-            } else if (res.status === 401) {
-                alert('Oturum süreniz dolmuş.');
-                router.push('/admin/login');
-            } else {
-                alert('Haber güncellenirken bir hata oluştu.');
+            if (error) {
+                throw error;
             }
+
+            alert('Haber başarıyla güncellendi!');
+            router.push('/admin');
         } catch (error) {
             console.error('Submit error:', error);
-            alert('Bir hata oluştu.');
+            alert('Haber güncellenirken bir hata oluştu.');
         } finally {
             setSaving(false);
         }

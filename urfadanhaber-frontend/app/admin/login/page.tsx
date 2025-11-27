@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase/client';
 
 export default function AdminLogin() {
     const router = useRouter();
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -16,18 +17,15 @@ export default function AdminLogin() {
         setError('');
 
         try {
-            const res = await fetch('http://localhost:8080/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password }),
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
             });
 
-            if (res.ok) {
-                const data = await res.json();
-                localStorage.setItem('token', data.token);
+            if (error) {
+                setError('Giriş başarısız: ' + error.message);
+            } else if (data.user) {
                 router.push('/admin');
-            } else {
-                setError('Kullanıcı adı veya şifre hatalı');
             }
         } catch (err) {
             setError('Giriş yapılırken bir hata oluştu');
@@ -48,11 +46,11 @@ export default function AdminLogin() {
                 )}
                 <form onSubmit={handleLogin} className="space-y-4">
                     <div>
-                        <label className="block text-gray-700 text-sm font-bold mb-2">Kullanıcı Adı</label>
+                        <label className="block text-gray-700 text-sm font-bold mb-2">E-posta</label>
                         <input
-                            type="text"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                             required
                         />

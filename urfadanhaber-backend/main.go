@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -29,6 +30,23 @@ func main() {
 
 	// Migrate the schema
 	db.AutoMigrate(&models.NewsArticle{}, &models.User{}, &models.Pharmacy{}, &models.Standing{}, &models.PrayerTime{})
+
+	// Seed data if empty
+	seedData()
+	seedAdminUser()
+
+	r := GinRouter()
+
+	// Use PORT from environment variable (Railway provides this)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080" // Default for local development
+	}
+	r.Run(":" + port)
+}
+
+func seedData() {
+	var count int64
 	db.Model(&models.NewsArticle{}).Count(&count)
 	if count > 0 {
 		return

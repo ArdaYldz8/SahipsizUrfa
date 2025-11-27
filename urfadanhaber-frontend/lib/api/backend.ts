@@ -1,50 +1,82 @@
 import { NewsArticle } from '@/types/news';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://urfadanhaber-production.up.railway.app/api';
+import { supabase } from '@/lib/supabase/client';
 
 export async function getNews(): Promise<NewsArticle[]> {
     try {
-        const res = await fetch(`${API_URL}/news`, {
-            cache: 'no-store',
-        });
+        const { data, error } = await supabase
+            .from('news')
+            .select('*')
+            .order('date_published', { ascending: false });
 
-        if (!res.ok) {
-            throw new Error('Failed to fetch news');
+        if (error) {
+            console.error('Error fetching news:', error);
+            return [];
         }
 
-        return res.json();
+        return mapSupabaseDataToNewsArticle(data);
     } catch (error) {
         console.error('Error fetching news:', error);
         return [];
     }
 }
 
-export async function getNewsDetail(id: string): Promise<NewsArticle | null> {
+export async function getNewsByCategory(category: string): Promise<NewsArticle[]> {
     try {
-        const res = await fetch(`${API_URL}/news/${id}`, {
-            next: { revalidate: 60 },
-        });
+        const { data, error } = await supabase
+            .from('news')
+            .select('*')
+            .eq('category', category)
+            .order('date_published', { ascending: false });
 
-        if (!res.ok) {
-            if (res.status === 404) return null;
-            throw new Error('Failed to fetch news detail');
+        if (error) {
+            console.error(`Error fetching news for category ${category}:`, error);
+            return [];
         }
 
-        return res.json();
+        return mapSupabaseDataToNewsArticle(data);
     } catch (error) {
-        console.error('Error fetching news detail:', error);
+        console.error(`Error fetching news for category ${category}:`, error);
+        return [];
+    }
+}
+
+export async function getNewsDetail(slug: string): Promise<NewsArticle | null> {
+    try {
+        const { data, error } = await supabase
+            .from('news')
+            .select('*')
+            .eq('slug', slug)
+            .single();
+
+        if (error) {
+            console.error(`Error fetching news detail for slug ${slug}:`, error);
+            return null;
+        }
+
+        return mapSupabaseDataToNewsArticle([data])[0];
+    } catch (error) {
+        console.error(`Error fetching news detail for slug ${slug}:`, error);
         return null;
     }
 }
 
-export async function getNewsByCategory(category: string): Promise<NewsArticle[]> {
-    try {
-        // In a real app, this would be a separate endpoint like /api/news?category=...
-        // For now, we fetch all news and filter on the client side or mock it
-        const allNews = await getNews();
-        return allNews.filter(article => article.category === category);
-    } catch (error) {
-        console.error('Error fetching news by category:', error);
-        return [];
-    }
+// Helper function to map Supabase data to our NewsArticle type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapSupabaseDataToNewsArticle(data: any[]): NewsArticle[] {
+    if (!data) return [];
+
+    return data.map(item => ({
+        id: item.id,
+        headline: item.headline,
+        description: item.description,
+        content: item.content,
+        author: item.author,
+        datePublished: item.date_published,
+        dateModified: item.date_modified,
+        image: item.image,
+        publisher: item.publisher,
+        isAccessibleForFree: item.is_accessible_for_free,
+        category: item.category,
+        slug: item.slug
+    }));
 }

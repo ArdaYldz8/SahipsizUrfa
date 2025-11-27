@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { getNews } from '@/lib/api/backend';
 import { NewsArticle } from '@/types/news';
+import { supabase } from '@/lib/supabase/client';
 
 export default function AdminDashboard() {
     const [news, setNews] = useState<NewsArticle[]>([]);
@@ -29,23 +30,17 @@ export default function AdminDashboard() {
         if (!confirm('Bu haberi silmek istediğinize emin misiniz?')) return;
 
         try {
-            const token = localStorage.getItem('token');
-            const res = await fetch(`http://localhost:8080/api/news/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const { error } = await supabase
+                .from('news')
+                .delete()
+                .eq('id', id);
 
-            if (res.ok) {
-                alert('Haber silindi');
-                loadNews(); // Listeyi yenile
-            } else if (res.status === 401) {
-                alert('Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.');
-                window.location.href = '/admin/login';
-            } else {
-                alert('Silme işlemi başarısız oldu');
+            if (error) {
+                throw error;
             }
+
+            alert('Haber silindi');
+            loadNews(); // Listeyi yenile
         } catch (error) {
             console.error('Silme hatası:', error);
             alert('Bir hata oluştu');
