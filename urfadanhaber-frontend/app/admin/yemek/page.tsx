@@ -22,7 +22,7 @@ export default function AdminRecipesPage() {
 
             if (error) throw error;
             setRecipes(data || []);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Yemekler yüklenemedi:', error.message, error.details, error.hint);
         } finally {
             setLoading(false);
