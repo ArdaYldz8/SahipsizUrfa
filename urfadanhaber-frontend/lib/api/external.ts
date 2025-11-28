@@ -44,7 +44,7 @@ export async function getCurrency() {
 
 export async function getPharmacies() {
     try {
-        const res = await fetch('http://localhost:8080/api/pharmacies');
+        const res = await fetch('/api/pharmacies');
         if (!res.ok) return [];
         return await res.json();
     } catch (error) {
@@ -55,7 +55,7 @@ export async function getPharmacies() {
 
 export async function getStandings(league: string = 'tff-1-lig') {
     try {
-        const res = await fetch(`http://localhost:8080/api/standings?league=${league}`);
+        const res = await fetch(`/api/standings?league=${league}`);
         if (!res.ok) return [];
         return await res.json();
     } catch (error) {
@@ -66,7 +66,7 @@ export async function getStandings(league: string = 'tff-1-lig') {
 
 export async function getPrayerTimes(city: string = 'sanliurfa') {
     try {
-        const res = await fetch(`http://localhost:8080/api/prayer-times?city=${city}`);
+        const res = await fetch(`/api/prayer-times?city=${city}`);
         if (!res.ok) return [];
         return await res.json();
     } catch (error) {

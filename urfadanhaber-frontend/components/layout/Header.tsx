@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import AramaKutusu from '@/components/AramaKutusu';
 import { getWeather, getCurrency, getPrayerTimes } from '@/lib/api/external';
+import BreakingNews from '@/components/BreakingNews';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -40,17 +41,22 @@ export default function Header() {
   }, []);
 
   const categories = [
-    { name: 'GÜNCEL', href: '/', icon: null },
-    { name: 'ŞANLIURFA', href: '/kategori/sanliurfa', icon: null },
-    { name: 'TÜRKİYE', href: '/kategori/turkiye', icon: null },
-    { name: 'SPOR', href: '/kategori/spor', icon: null },
-    { name: 'EKONOMİ', href: '/kategori/ekonomi', icon: null },
-    { name: 'EĞİTİM', href: '/kategori/egitim', icon: null },
-    { name: 'SAĞLIK', href: '/kategori/saglik', icon: null },
-    { name: 'KÜLTÜR SANAT', href: '/kategori/kultur-sanat', icon: null },
-    { name: 'FOTO GALERİ', href: '/foto-galeri', icon: null },
-    { name: 'VİDEO GALERİ', href: '/video-galeri', icon: null },
-    { name: 'YAZARLAR', href: '/kose-yazarlari', icon: null },
+    { name: 'GÜNCEL', href: '/' },
+    { name: 'ŞANLIURFA', href: '/kategori/sanliurfa' },
+    { name: 'TÜRKİYE', href: '/kategori/turkiye' },
+    { name: 'SPOR', href: '/kategori/spor' },
+    { name: 'EKONOMİ', href: '/kategori/ekonomi' },
+    { name: 'EĞİTİM', href: '/kategori/egitim' },
+    { name: 'SAĞLIK', href: '/kategori/saglik' },
+    { name: 'KÜLTÜR', href: '/kategori/kultur-sanat' },
+    { name: 'FOTO', href: '/foto-galeri' },
+    { name: 'VİDEO', href: '/video-galeri' },
+    { name: 'TAZİYE', href: '/taziye' },
+    { name: 'BURÇLAR', href: '/burc' },
+    { name: 'YÖRESEL', href: '/yoresel-yemekler' },
+    { name: 'DİNİ BİLGİLER', href: '/dini-bilgiler' },
+    { name: 'SORU SOR', href: '/uzmanina-sor' },
+    { name: 'CANLI', href: '/canli-yayin', isLive: true },
   ];
 
   return (
@@ -143,9 +149,9 @@ export default function Header() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between items-center h-12">
             {/* Desktop Nav */}
-            <nav className="hidden md:flex items-center gap-1 h-full overflow-x-auto no-scrollbar">
+            <nav className="hidden md:flex items-center gap-0.5 h-full overflow-x-auto no-scrollbar">
               {/* Home Icon */}
-              <Link href="/" className="h-full px-3 flex items-center justify-center hover:bg-white/10 hover:text-secondary transition-colors border-r border-white/10">
+              <Link href="/" className="h-full px-2 flex items-center justify-center hover:bg-white/10 hover:text-secondary transition-colors border-r border-white/10">
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg>
               </Link>
 
@@ -153,9 +159,16 @@ export default function Header() {
                 <Link
                   key={category.href}
                   href={category.href}
-                  className="h-full px-3 flex items-center font-bold text-sm hover:bg-white/10 hover:text-secondary transition-colors whitespace-nowrap"
+                  className={`h-full px-1.5 flex items-center font-bold text-[12px] lg:text-[13px] hover:bg-white/10 hover:text-secondary transition-colors whitespace-nowrap ${
+                    // @ts-ignore
+                    category.isLive ? 'text-red-400 animate-pulse' : ''
+                    }`}
                 >
                   {category.name}
+                  {/* @ts-ignore */}
+                  {category.isLive && (
+                    <span className="ml-1 w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
+                  )}
                 </Link>
               ))}
             </nav>
@@ -174,6 +187,16 @@ export default function Header() {
               </svg>
             </button>
 
+            {/* Mobile Logo (Centered) */}
+            <Link href="/" className="md:hidden absolute left-1/2 transform -translate-x-1/2 h-8 w-32">
+              <Image
+                src="/logo.svg"
+                alt="UrfadanHaber"
+                fill
+                className="object-contain brightness-0 invert"
+              />
+            </Link>
+
             {/* Extra Actions */}
             <div className="hidden md:flex items-center h-full border-l border-white/10 pl-4 ml-4">
               <button className="p-2 hover:bg-white/10 rounded-full transition-colors">
@@ -183,29 +206,73 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Mobile Nav Dropdown */}
-        <div className={`md:hidden bg-[#1e3a8a] border-t border-white/10 overflow-hidden transition-all duration-300 ${mobileMenuOpen ? 'max-h-screen' : 'max-h-0'}`}>
-          <nav className="flex flex-col p-4 space-y-2">
-            {categories.map((category) => (
-              <Link
-                key={category.href}
-                href={category.href}
+        {/* Mobile Nav Overlay */}
+        <div className={`md:hidden fixed inset-0 z-[60] bg-slate-900/95 backdrop-blur-sm transition-transform duration-300 ease-in-out ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+          <div className="flex flex-col h-full">
+            {/* Mobile Menu Header */}
+            <div className="flex items-center justify-between p-4 border-b border-white/10">
+              <div className="relative w-32 h-8">
+                <Image
+                  src="/logo.svg"
+                  alt="UrfadanHaber"
+                  fill
+                  className="object-contain brightness-0 invert"
+                />
+              </div>
+              <button
                 onClick={() => setMobileMenuOpen(false)}
-                className="px-4 py-3 hover:bg-white/10 rounded text-sm font-bold"
+                className="p-2 text-white hover:bg-white/10 rounded-full transition-colors"
               >
-                {category.name}
-              </Link>
-            ))}
-          </nav>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            {/* Mobile Menu Links */}
+            <nav className="flex-1 overflow-y-auto py-4 px-2">
+              <div className="space-y-1">
+                <Link
+                  href="/"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center px-4 py-3 text-white hover:bg-white/10 rounded-lg transition-colors font-medium text-lg"
+                >
+                  <svg className="w-5 h-5 mr-3 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                  Ana Sayfa
+                </Link>
+
+                {categories.map((category) => (
+                  <Link
+                    key={category.href}
+                    href={category.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center px-4 py-3 rounded-lg transition-colors font-medium text-lg ${
+                      // @ts-ignore
+                      category.isLive ? 'text-red-400 bg-red-400/10' : 'text-white hover:bg-white/10'
+                      }`}
+                  >
+                    {/* @ts-ignore */}
+                    {category.isLive && <span className="w-2 h-2 bg-red-500 rounded-full mr-3 animate-pulse"></span>}
+                    {category.name}
+                  </Link>
+                ))}
+              </div>
+            </nav>
+
+            {/* Mobile Menu Footer */}
+            <div className="p-4 border-t border-white/10 bg-black/20">
+              <div className="flex justify-center gap-6 text-white/60">
+                <a href="#" className="hover:text-white transition-colors"><svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" /></svg></a>
+                <a href="#" className="hover:text-white transition-colors"><svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z" /></svg></a>
+              </div>
+              <div className="mt-4 text-center text-xs text-white/40">
+                &copy; {new Date().getFullYear()} UrfadanHaber
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Breaking News Ticker */}
-      <div className="border-b border-gray-200">
-        <BreakingNews />
-      </div>
+      <BreakingNews />
     </header>
   );
 }
-
-import BreakingNews from '@/components/BreakingNews';

@@ -10,6 +10,9 @@ import AuthorsWidget from '@/components/sidebar/AuthorsWidget';
 import HeroSection from '@/components/home/HeroSection';
 import HeadlinesStrip from '@/components/home/HeadlinesStrip';
 import CategoryBlock from '@/components/home/CategoryBlock';
+import TaziyeWidget from '@/components/home/TaziyeWidget';
+import BurcWidget from '@/components/home/BurcWidget';
+import SoruSorWidget from '@/components/home/SoruSorWidget';
 import { getNews } from '@/lib/api/backend';
 
 export const metadata: Metadata = {
@@ -141,8 +144,6 @@ export default async function Home() {
             </section>
 
             {/* Category Blocks */}
-            <CategoryBlock title="ŞANLIURFA" href="/kategori/sanliurfa" news={sanliurfaNews} />
-            <CategoryBlock title="SPOR" href="/kategori/spor" news={sporNews} color="text-red-600" />
             <CategoryBlock title="EKONOMİ" href="/kategori/ekonomi" news={ekonomiNews} color="text-green-600" />
 
           </div>
@@ -151,6 +152,9 @@ export default async function Home() {
           <aside className="lg:col-span-1 space-y-8">
             <div className="sticky top-24 space-y-8">
               <MostReadWidget news={heroNews.slice(0, 5)} />
+              <SoruSorWidget />
+              <TaziyeWidget />
+              <BurcWidget />
               <AuthorsWidget />
               <HavaDurumu />
               <DovizKurlari />

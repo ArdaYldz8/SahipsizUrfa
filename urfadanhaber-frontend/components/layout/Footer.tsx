@@ -54,6 +54,8 @@ export default function Footer() {
               <li><Link href="/kunye" className="hover:text-secondary transition-colors">Künye</Link></li>
               <li><Link href="/foto-galeri" className="hover:text-secondary transition-colors">Foto Galeri</Link></li>
               <li><Link href="/video-galeri" className="hover:text-secondary transition-colors">Video Galeri</Link></li>
+              <li><Link href="/taziye" className="hover:text-secondary transition-colors">Taziye Köşesi</Link></li>
+              <li><Link href="/burc" className="hover:text-secondary transition-colors">Burç Yorumları</Link></li>
               <li><Link href="/iletisim" className="hover:text-secondary transition-colors">İletişim</Link></li>
               <li><Link href="/gizlilik-politikasi" className="hover:text-secondary transition-colors">Gizlilik Politikası</Link></li>
               <li><Link href="/cerez-politikasi" className="hover:text-secondary transition-colors">Çerez Politikası</Link></li>

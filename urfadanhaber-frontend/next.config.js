@@ -33,6 +33,18 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'i.ytimg.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'iasbh.tmgrup.com.tr',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.lezzet.com.tr',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.nefisyemektarifleri.com',
+      },
     ],
   },
   turbopack: {},

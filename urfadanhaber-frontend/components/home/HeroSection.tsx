@@ -98,7 +98,7 @@ export default function HeroSection({ news }: HeroSectionProps) {
                     <Link
                         key={item.id}
                         href={`/haber/${item.slug}`}
-                        className="flex gap-3 p-3 border-b border-gray-200 hover:bg-white transition-colors group h-1/5"
+                        className="flex gap-3 p-3 border-b border-gray-200 hover:bg-white transition-colors group min-h-[100px] lg:min-h-0 lg:h-1/5"
                     >
                         <div className="relative w-24 h-full flex-shrink-0 overflow-hidden rounded-sm">
                             <Image
