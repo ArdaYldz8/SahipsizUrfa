@@ -30,7 +30,7 @@ export default function LiveStreamAdmin() {
             if (data) {
                 setConfig(data.value);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Ayarlar yüklenemedi:', error.message, error.details, error.hint);
         } finally {
             setLoading(false);
